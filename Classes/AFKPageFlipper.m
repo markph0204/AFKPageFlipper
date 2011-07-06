@@ -9,20 +9,14 @@
 #import "AFKPageFlipper.h"
 
 
-#pragma mark -
-#pragma mark UIView helpers
-
+#pragma mark - UIView helpers
 
 @interface UIView(Extended) 
-
 - (UIImage *) imageByRenderingView;
-
 @end
 
 
 @implementation UIView(Extended)
-
-
 - (UIImage *) imageByRenderingView {
 	
 	UIGraphicsBeginImageContext(self.bounds.size);
@@ -32,28 +26,60 @@
 	
 	return resultingImage;
 }
-
 @end
 
 
-#pragma mark -
-#pragma mark Private interface
-
+#pragma mark - Private interface
 
 @interface AFKPageFlipper()
-
 @property (nonatomic,assign) UIView *currentView;
 @property (nonatomic,assign) UIView *newView;
-
 @end
 
 
 @implementation AFKPageFlipper
 
+#pragma mark - Initialization and memory management
 
-#pragma mark -
-#pragma mark Flip functionality
++ (Class)layerClass {
+	return [CATransformLayer class];
+}
 
+- (id)initWithFrame:(CGRect)frame {
+    if ((self = [super initWithFrame:frame])) {
+		UITapGestureRecognizer *tapRecognizer = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)] autorelease];
+		UIPanGestureRecognizer *panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panned:)] autorelease];
+		
+		[tapRecognizer requireGestureRecognizerToFail:panRecognizer];
+		
+        [self addGestureRecognizer:tapRecognizer];
+		[self addGestureRecognizer:panRecognizer];
+    }
+    return self;
+}
+
+- (void)dealloc {
+	self.dataSource = nil;
+	self.currentView = nil;
+	self.newView = nil;
+    [super dealloc];
+}
+
+
+#pragma mark - Frame management
+
+- (void)setFrame:(CGRect)value {
+	super.frame = value;
+    
+	numberOfPages = [dataSource numberOfPagesForPageFlipper:self];
+	
+	if (self.currentPage > numberOfPages) {
+		self.currentPage = numberOfPages;
+	}	
+}
+
+
+#pragma mark - Flip functionality
 
 - (void) initFlip {
 	
@@ -156,7 +182,6 @@
 	}
 }
 
-
 - (void) cleanupFlip {
 	[backgroundAnimationLayer removeFromSuperlayer];
 	[flipAnimationLayer removeFromSuperlayer];
@@ -177,7 +202,6 @@
 
 	self.currentView.alpha = 1;
 }
-
 
 - (void) setFlipProgress:(float) progress setDelegate:(BOOL) setDelegate animate:(BOOL) animate {
 	float newAngle = startFlipAngle + progress * (endFlipAngle - startFlipAngle);
@@ -204,26 +228,19 @@
 	}
 }
 
-
 - (void) flipPage {
 	[self setFlipProgress:1.0 setDelegate:YES animate:YES];
 }
 
 
-#pragma mark -
-#pragma mark Animation management
-
+#pragma mark - Animation management
 
 - (void)animationDidStop:(NSString *) animationID finished:(NSNumber *) finished context:(void *) context {
 	[self cleanupFlip];
 }
 
 
-#pragma mark -
-#pragma mark Properties
-
-@synthesize currentView;
-
+#pragma mark - Properties
 
 - (void) setCurrentView:(UIView *) value {
 	if (currentView) {
@@ -233,10 +250,6 @@
 	currentView = [value retain];
 }
 
-
-@synthesize newView;
-
-
 - (void) setNewView:(UIView *) value {
 	if (newView) {
 		[newView release];
@@ -244,10 +257,6 @@
 	
 	newView = [value retain];
 }
-
-
-@synthesize currentPage;
-
 
 - (BOOL) doSetCurrentPage:(NSInteger) value {
 	if (value == currentPage) {
@@ -284,7 +293,6 @@
 	[UIView commitAnimations];
 } 
 
-
 - (void) setCurrentPage:(NSInteger) value animated:(BOOL) animated {
 	if (![self doSetCurrentPage:value]) {
 		return;
@@ -302,10 +310,6 @@
 
 }
 
-
-@synthesize dataSource;
-
-
 - (void) setDataSource:(NSObject <AFKPageFlipperDataSource>*) value {
 	if (dataSource) {
 		[dataSource release];
@@ -315,10 +319,6 @@
 	numberOfPages = [dataSource numberOfPagesForPageFlipper:self];
 	self.currentPage = 1;
 }
-
-
-@synthesize disabled;
-
 
 - (void) setDisabled:(BOOL) value {
 	disabled = value;
@@ -331,9 +331,7 @@
 }
 
 
-#pragma mark -
-#pragma mark Touch management
-
+#pragma mark - Touch management
 
 - (void) tapped:(UITapGestureRecognizer *) recognizer {
 	if (animating || self.disabled) {
@@ -352,7 +350,6 @@
 		[self setCurrentPage:newPage animated:YES];
 	}
 }
-
 
 - (void) panned:(UIPanGestureRecognizer *) recognizer {
 	static BOOL hasFailed;
@@ -443,51 +440,13 @@
 }
 
 
-#pragma mark -
-#pragma mark Frame management
 
 
-- (void) setFrame:(CGRect) value {
-	super.frame = value;
-
-	numberOfPages = [dataSource numberOfPagesForPageFlipper:self];
-	
-	if (self.currentPage > numberOfPages) {
-		self.currentPage = numberOfPages;
-	}
-	
-}
 
 
-#pragma mark -
-#pragma mark Initialization and memory management
-
-
-+ (Class) layerClass {
-	return [CATransformLayer class];
-}
-
-
-- (id)initWithFrame:(CGRect)frame {
-    if ((self = [super initWithFrame:frame])) {
-		UITapGestureRecognizer *tapRecognizer = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)] autorelease];
-		UIPanGestureRecognizer *panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panned:)] autorelease];
-		
-		[tapRecognizer requireGestureRecognizerToFail:panRecognizer];
-		
-        [self addGestureRecognizer:tapRecognizer];
-		[self addGestureRecognizer:panRecognizer];
-    }
-    return self;
-}
-
-
-- (void)dealloc {
-	self.dataSource = Nil;
-	self.currentView = Nil;
-	self.newView = Nil;
-    [super dealloc];
-}
-
-
+@synthesize currentView;
+@synthesize newView;
+@synthesize currentPage;
+@synthesize dataSource;
+@synthesize disabled;
 @end
