@@ -318,11 +318,11 @@
     }
 }
 
-- (void) setDisabled:(BOOL) value {
+- (void)setDisabled:(BOOL)value {
 	disabled = value;
-	
+
 	self.userInteractionEnabled = !value;
-	
+
 	for (UIGestureRecognizer *recognizer in self.gestureRecognizers) {
 		recognizer.enabled = !value;
 	}
