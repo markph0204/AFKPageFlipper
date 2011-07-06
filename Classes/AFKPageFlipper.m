@@ -32,8 +32,8 @@
 #pragma mark - Private interface
 
 @interface AFKPageFlipper()
-@property (nonatomic,assign) UIView *currentView;
-@property (nonatomic,assign) UIView *newView;
+@property (nonatomic,retain) UIView *currentView;
+@property (nonatomic,retain) UIView *newView;
 @end
 
 
@@ -241,22 +241,6 @@
 
 
 #pragma mark - Properties
-
-- (void) setCurrentView:(UIView *) value {
-	if (currentView) {
-		[currentView release];
-	}
-	
-	currentView = [value retain];
-}
-
-- (void) setNewView:(UIView *) value {
-	if (newView) {
-		[newView release];
-	}
-	
-	newView = [value retain];
-}
 
 - (BOOL) doSetCurrentPage:(NSInteger) value {
 	if (value == currentPage) {
