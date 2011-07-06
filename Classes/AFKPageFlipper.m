@@ -310,14 +310,12 @@
 
 }
 
-- (void) setDataSource:(NSObject <AFKPageFlipperDataSource>*) value {
-	if (dataSource) {
-		[dataSource release];
-	}
-	
-	dataSource = [value retain];
-	numberOfPages = [dataSource numberOfPagesForPageFlipper:self];
-	self.currentPage = 1;
+- (void)setDataSource:(NSObject <AFKPageFlipperDataSource>*)value {
+    if (dataSource != value) {
+        dataSource = value;
+        numberOfPages = [dataSource numberOfPagesForPageFlipper:self];
+        self.currentPage = 1;
+    }
 }
 
 - (void) setDisabled:(BOOL) value {

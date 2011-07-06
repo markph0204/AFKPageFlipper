@@ -50,10 +50,10 @@ typedef enum {
 	BOOL disabled;
 }
 
-@property (nonatomic,retain) NSObject <AFKPageFlipperDataSource> *dataSource;
-@property (nonatomic,assign) NSInteger currentPage;
+@property (nonatomic, assign) NSObject <AFKPageFlipperDataSource> *dataSource;
+@property (nonatomic, assign) NSInteger currentPage;
 
-@property (nonatomic,assign) BOOL disabled;
+@property (nonatomic, assign) BOOL disabled;
 
 - (void) setCurrentPage:(NSInteger) value animated:(BOOL) animated;
 
