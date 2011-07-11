@@ -47,7 +47,7 @@
     if ((self = [super initWithFrame:frame])) {
 		UITapGestureRecognizer *tapRecognizer = [[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped:)] autorelease];
 		UIPanGestureRecognizer *panRecognizer = [[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panned:)] autorelease];
-		
+
 		[tapRecognizer requireGestureRecognizerToFail:panRecognizer];
 		
         [self addGestureRecognizer:tapRecognizer];
@@ -77,7 +77,7 @@
 
 #pragma mark - Flip functionality
 
-- (void) initFlip {
+- (void)initFlip {
 	
 	// Create screenshots of view
 	
@@ -102,7 +102,6 @@
 	leftLayer.frame = rect;
 	leftLayer.masksToBounds = YES;
 	leftLayer.contentsGravity = kCAGravityLeft;
-	
 	[backgroundAnimationLayer addSublayer:leftLayer];
 	
 	rect.origin.x = rect.size.width;
@@ -111,7 +110,6 @@
 	rightLayer.frame = rect;
 	rightLayer.masksToBounds = YES;
 	rightLayer.contentsGravity = kCAGravityRight;
-	
 	[backgroundAnimationLayer addSublayer:rightLayer];
 	
 	if (flipDirection == AFKPageFlipperDirectionRight) {
@@ -129,14 +127,12 @@
 	flipAnimationLayer = [CATransformLayer layer];
 	flipAnimationLayer.anchorPoint = CGPointMake(1.0, 0.5);
 	flipAnimationLayer.frame = rect;
-	
 	[self.layer addSublayer:flipAnimationLayer];
 	
 	CALayer *backLayer = [CALayer layer];
 	backLayer.frame = flipAnimationLayer.bounds;
 	backLayer.doubleSided = NO;
 	backLayer.masksToBounds = YES;
-	
 	[flipAnimationLayer addSublayer:backLayer];
 	
 	CALayer *frontLayer = [CALayer layer];
@@ -144,7 +140,6 @@
 	frontLayer.doubleSided = NO;
 	frontLayer.masksToBounds = YES;
 	frontLayer.transform = CATransform3DMakeRotation(M_PI, 0, 1.0, 0);
-	
 	[flipAnimationLayer addSublayer:frontLayer];
 	
 	if (flipDirection == AFKPageFlipperDirectionRight) {
@@ -178,15 +173,15 @@
 	}
 }
 
-- (void) cleanupFlip {
+- (void)cleanupFlip {
 	[backgroundAnimationLayer removeFromSuperlayer];
 	[flipAnimationLayer removeFromSuperlayer];
-	
+
 	backgroundAnimationLayer = Nil;
 	flipAnimationLayer = Nil;
-	
+
 	animating = NO;
-	
+
 	if (setNewViewOnCompletion) {
 		[self.currentView removeFromSuperview];
 		self.currentView = self.newView;
@@ -199,7 +194,7 @@
 	self.currentView.alpha = 1;
 }
 
-- (void) setFlipProgress:(float) progress setDelegate:(BOOL) setDelegate animate:(BOOL) animate {
+- (void)setFlipProgress:(float)progress setDelegate:(BOOL)setDelegate animate:(BOOL)animate {
 	float newAngle = startFlipAngle + progress * (endFlipAngle - startFlipAngle);
 	
 	float duration = animate ? 0.5 * fabs((newAngle - currentAngle) / (endFlipAngle - startFlipAngle)) : 0;
@@ -211,20 +206,20 @@
 	endTransform = CATransform3DRotate(endTransform, newAngle, 0.0, 1.0, 0.0);	
 	
 	[flipAnimationLayer removeAllAnimations];
-							
+
 	[CATransaction begin];
 	[CATransaction setAnimationDuration:duration];
 	
 	flipAnimationLayer.transform = endTransform;
 	
 	[CATransaction commit];
-	
+
 	if (setDelegate) {
 		[self performSelector:@selector(cleanupFlip) withObject:Nil afterDelay:duration];
 	}
 }
 
-- (void) flipPage {
+- (void)flipPage {
 	[self setFlipProgress:1.0 setDelegate:YES animate:YES];
 }
 
@@ -285,9 +280,7 @@
 	[UIView setAnimationDuration:0.5];
 	[UIView setAnimationDelegate:self];
 	[UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-	
 	self.newView.alpha = 1;
-	
 	[UIView commitAnimations];
 }
 
@@ -301,9 +294,7 @@
 
 - (void)setDisabled:(BOOL)value {
 	disabled = value;
-
 	self.userInteractionEnabled = !value;
-
 	for (UIGestureRecognizer *recognizer in self.gestureRecognizers) {
 		recognizer.enabled = !value;
 	}
@@ -312,11 +303,11 @@
 
 #pragma mark - Touch management
 
-- (void) tapped:(UITapGestureRecognizer *) recognizer {
+- (void)tapped:(UITapGestureRecognizer *)recognizer {
 	if (animating || self.disabled) {
 		return;
 	}
-	
+
 	if (recognizer.state == UIGestureRecognizerStateRecognized) {
 		NSInteger newPage;
 		
@@ -330,22 +321,19 @@
 	}
 }
 
-- (void) panned:(UIPanGestureRecognizer *) recognizer {
+- (void)panned:(UIPanGestureRecognizer *)recognizer {
 	static BOOL hasFailed;
 	static BOOL initialized;
-	
 	static NSInteger oldPage;
-
 	float translation = [recognizer translationInView:self].x;
-	
 	float progress = translation / self.bounds.size.width;
-	
+
 	if (flipDirection == AFKPageFlipperDirectionLeft) {
 		progress = MIN(progress, 0);
 	} else {
 		progress = MAX(progress, 0);
 	}
-	
+
 	switch (recognizer.state) {
 		case UIGestureRecognizerStateBegan:
 			hasFailed = FALSE;
@@ -353,14 +341,12 @@
 			animating = NO;
 			setNewViewOnCompletion = NO;
 			break;
-			
-			
+
 		case UIGestureRecognizerStateChanged:
-			
 			if (hasFailed) {
 				return;
 			}
-			
+
 			if (!initialized) {
 				oldPage = self.currentPage;
 				
@@ -379,33 +365,30 @@
 						return;
 					}
 				}
-				
+
 				hasFailed = NO;
 				initialized = TRUE;
 				animating = YES;
 				setNewViewOnCompletion = NO;
-				
+
 				[self initFlip];
 			}
-			
+
 			[self setFlipProgress:fabs(progress) setDelegate:NO animate:NO];
-			
 			break;
-			
-			
+
 		case UIGestureRecognizerStateFailed:
 			[self setFlipProgress:0.0 setDelegate:YES animate:YES];
 			currentPage = oldPage;
 			break;
-			
+
 		case UIGestureRecognizerStateRecognized:
 			if (hasFailed) {
 				[self setFlipProgress:0.0 setDelegate:YES animate:YES];
 				currentPage = oldPage;
-				
 				return;
 			}
-			
+
 			if (fabs((translation + [recognizer velocityInView:self].x / 4) / self.bounds.size.width) > 0.5) {
 				setNewViewOnCompletion = YES;
 				[self setFlipProgress:1.0 setDelegate:YES animate:YES];
@@ -413,8 +396,10 @@
 				[self setFlipProgress:0.0 setDelegate:YES animate:YES];
 				currentPage = oldPage;
 			}
-
 			break;
+
+        default:
+            break;
 	}
 }
 

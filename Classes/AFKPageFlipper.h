@@ -46,7 +46,6 @@ typedef enum {
 
 	BOOL setNewViewOnCompletion;
 	BOOL animating;
-	
 	BOOL disabled;
 }
 
