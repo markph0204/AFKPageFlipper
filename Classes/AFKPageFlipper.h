@@ -55,6 +55,6 @@ typedef enum {
 
 @property (nonatomic,assign) BOOL disabled;
 
-- (void) setCurrentPage:(NSInteger) value animated:(BOOL) animated;
+- (void)changeCurrentPage:(NSInteger)pageIndex animated:(BOOL) animated;
 
 @end

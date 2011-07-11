@@ -31,6 +31,7 @@
 @interface AFKPageFlipper()
 @property (nonatomic,retain) UIView *currentView;
 @property (nonatomic,retain) UIView *newView;
+- (void)animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
 @end
 
 
@@ -67,9 +68,7 @@
 
 - (void)setFrame:(CGRect)value {
 	super.frame = value;
-    
 	numberOfPages = [dataSource numberOfPagesForPageFlipper:self];
-	
 	if (self.currentPage > numberOfPages) {
 		self.currentPage = numberOfPages;
 	}	
@@ -229,33 +228,51 @@
 	[self setFlipProgress:1.0 setDelegate:YES animate:YES];
 }
 
+// determines flip direction, set's the new page as current, assigns newView
+// returns if changing to this page number is valid (not already on page)
+- (BOOL)prepareChangeCurrentPage:(NSInteger)newPage {
+	if (newPage == currentPage) {
+		return FALSE;
+	}
+
+	flipDirection = newPage < currentPage ? AFKPageFlipperDirectionRight : AFKPageFlipperDirectionLeft;	
+	currentPage = newPage;
+
+	self.newView = [self.dataSource viewForPage:newPage inFlipper:self];
+	[self addSubview:self.newView];
+	return TRUE;
+}
+
+- (void)changeCurrentPage:(NSInteger)page animated:(BOOL)animated {
+	if (![self prepareChangeCurrentPage:page]) {
+		return;
+	}
+
+	setNewViewOnCompletion = YES;
+	animating = YES;
+
+	if (animated) {
+		[self initFlip];
+		[self performSelector:@selector(flipPage) withObject:Nil afterDelay:0.001];
+	} else {
+		[self animationDidStop:nil finished:[NSNumber numberWithBool:NO] context:nil];
+	}
+}
+
 
 #pragma mark - Animation management
 
-- (void)animationDidStop:(NSString *) animationID finished:(NSNumber *) finished context:(void *) context {
+- (void)animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context {
 	[self cleanupFlip];
 }
 
 
 #pragma mark - Properties
 
-- (BOOL) doSetCurrentPage:(NSInteger) value {
-	if (value == currentPage) {
-		return FALSE;
-	}
-	
-	flipDirection = value < currentPage ? AFKPageFlipperDirectionRight : AFKPageFlipperDirectionLeft;
-	
-	currentPage = value;
-	
-	self.newView = [self.dataSource viewForPage:value inFlipper:self];
-	[self addSubview:self.newView];
-	
-	return TRUE;
-}	
-
-- (void) setCurrentPage:(NSInteger) value {
-	if (![self doSetCurrentPage:value]) {
+// setting the current page, by default just fades in (no flipping)
+// when current page is set via property (page 1) - fade in
+- (void)setCurrentPage:(NSInteger)value {
+	if (![self prepareChangeCurrentPage:value]) {
 		return;
 	}
 	
@@ -272,23 +289,6 @@
 	self.newView.alpha = 1;
 	
 	[UIView commitAnimations];
-} 
-
-- (void) setCurrentPage:(NSInteger) value animated:(BOOL) animated {
-	if (![self doSetCurrentPage:value]) {
-		return;
-	}
-	
-	setNewViewOnCompletion = YES;
-	animating = YES;
-	
-	if (animated) {
-		[self initFlip];
-		[self performSelector:@selector(flipPage) withObject:Nil afterDelay:0.001];
-	} else {
-		[self animationDidStop:Nil finished:[NSNumber numberWithBool:NO] context:Nil];
-	}
-
 }
 
 - (void)setDataSource:(NSObject <AFKPageFlipperDataSource>*)value {
@@ -325,8 +325,8 @@
 		} else {
 			newPage = MIN(self.currentPage + 1, numberOfPages);
 		}
-		
-		[self setCurrentPage:newPage animated:YES];
+
+        [self changeCurrentPage:newPage animated:YES];
 	}
 }
 
@@ -366,14 +366,14 @@
 				
 				if (translation > 0) {
 					if (self.currentPage > 1) {
-						[self doSetCurrentPage:self.currentPage - 1];
+						[self prepareChangeCurrentPage:self.currentPage - 1];
 					} else {
 						hasFailed = TRUE;
 						return;
 					}
 				} else {
 					if (self.currentPage < numberOfPages - 1) {
-						[self doSetCurrentPage:self.currentPage + 1];
+						[self prepareChangeCurrentPage:self.currentPage + 1];
 					} else {
 						hasFailed = TRUE;
 						return;
@@ -417,8 +417,6 @@
 			break;
 	}
 }
-
-
 
 
 
