@@ -192,6 +192,7 @@
 	}
 
 	self.currentView.alpha = 1;
+    self.userInteractionEnabled = YES;
 }
 
 - (void)setFlipProgress:(float)progress setDelegate:(BOOL)setDelegate animate:(BOOL)animate {
@@ -206,6 +207,7 @@
 	endTransform = CATransform3DRotate(endTransform, newAngle, 0.0, 1.0, 0.0);	
 	
 	[flipAnimationLayer removeAllAnimations];
+    self.userInteractionEnabled = NO;
 
 	[CATransaction begin];
 	[CATransaction setAnimationDuration:duration];
